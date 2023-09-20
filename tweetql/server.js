@@ -1,6 +1,6 @@
 import { ApolloServer, gql } from "apollo-server";
 
-const tweets = [
+let tweets = [
     {
         id:"1", 
         text:"firsg one!", 
@@ -10,6 +10,14 @@ const tweets = [
         text:"second one", 
     }
 ]
+
+let users = [
+    {
+        id:"1", 
+        firstName:"gwak", 
+        lastName:"sha"
+    }, 
+];
 
 // graphql의 schema definition language(SDL) 선언 
 // Query type은 필수값
@@ -26,9 +34,9 @@ const typeDefs = gql`
         author:User
     }
     type Query {
+        allUsers:[User!]!
         allTweets:[Tweet!]!
         tweet(id:ID!) :Tweet
-        ping:String!
     }
     type Mutation {
         postTweet(text:String!, userId:ID!):Tweet!
@@ -48,11 +56,30 @@ const typeDefs = gql`
 
 const resolvers = {
     Query : { 
+        allUsers() {
+            return users;
+        },
         allTweets() {
             return tweets; 
         },
         tweet(root, {id}) {
             return tweets.find((tweet) => tweet.id === id);
+        }
+    }, 
+    Mutation: {
+        postTweet(__, {text, userId}) {
+            const newTweet = {
+                id: tweets.length + 1, 
+                text, 
+            }; 
+            tweets.push(newTweet);
+            return newTweet;
+        }, 
+        deleteTweet(__, {id}) { 
+            const tweet = tweets.find((tweet) => tweet.id === id);
+            if (!tweet) return false;
+            tweets = tweets.filter((tweet) => tweet.id !== id);
+            return true;
         }
     }
 }
