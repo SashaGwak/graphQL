@@ -1,5 +1,16 @@
 import { ApolloServer, gql } from "apollo-server";
 
+const tweets = [
+    {
+        id:"1", 
+        text:"firsg one!", 
+    }, 
+    {
+        id:"2", 
+        text:"second one", 
+    }
+]
+
 // graphql의 schema definition language(SDL) 선언 
 // Query type은 필수값
 const typeDefs = gql`
@@ -7,16 +18,17 @@ const typeDefs = gql`
         id:ID!
         username:String!
         firstName:String!
-        lastName:String!
+        lastName:String
     }
     type Tweet {
         id:ID!
         text:String!
-        author:User!
+        author:User
     }
     type Query {
         allTweets:[Tweet!]!
         tweet(id:ID!) :Tweet
+        ping:String!
     }
     type Mutation {
         postTweet(text:String!, userId:ID!):Tweet!
@@ -34,7 +46,25 @@ const typeDefs = gql`
 // tweet(id:ID!) :Tweet!
 // 예를 들어 위에는 id이라는 파라미터가 필수값으로 들어오고 필수로 Tweet이라는 데이터를 리턴할 예정임
 
-const server = new ApolloServer({typeDefs}); 
+const resolvers = {
+    Query : { 
+        allTweets() {
+            return tweets; 
+        },
+        tweet(root, {id}) {
+            return tweets.find((tweet) => tweet.id === id);
+        }
+    }
+}
+// typeDefs 의 Query와 꼭 이름 일치해야함!!! 
+// user의 argument 다루는 방법
+// tweet(root, args) {
+//     console.log(args);
+//     return null;
+// }
+// 이런식으로 args 파라미터로 받아올 수 있음. 혹은 객체구조분해
+
+const server = new ApolloServer({typeDefs, resolvers}); 
 
 server.listen().then(({ url }) => {
     console.log(`Running on ${url}`);
