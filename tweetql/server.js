@@ -34,8 +34,14 @@ const typeDefs = gql`
         username:String!
         firstName:String!
         lastName:String
+        """
+        fullName = firstName + lastName 리턴
+        """
         fullName:String!
     }
+    """
+    트위터 게시물에 대한 정보
+    """
     type Tweet {
         id:ID!
         text:String!
@@ -48,6 +54,7 @@ const typeDefs = gql`
     }
     type Mutation {
         postTweet(text:String!, userId:ID!):Tweet!
+        """ 트위터 id 존재하는지 검사 후 존재한다면 삭제함. id 찾지못하면 false return """
         deleteTweet(id:ID!):Boolean!
     }
 `; 
