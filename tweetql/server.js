@@ -4,10 +4,12 @@ let tweets = [
     {
         id:"1", 
         text:"firsg one!", 
+        userId:"2",
     }, 
     {
         id:"2", 
         text:"second one", 
+        userId:"1",
     }
 ]
 
@@ -17,6 +19,11 @@ let users = [
         firstName:"gwak", 
         lastName:"sha"
     }, 
+    {
+        id:"2",
+        firstName:"go",
+        lastName:"nyang"   
+    }
 ];
 
 // graphql의 schema definition language(SDL) 선언 
@@ -27,6 +34,7 @@ const typeDefs = gql`
         username:String!
         firstName:String!
         lastName:String
+        fullName:String!
     }
     type Tweet {
         id:ID!
@@ -56,7 +64,8 @@ const typeDefs = gql`
 
 const resolvers = {
     Query : { 
-        allUsers() {
+        allUsers(root) {
+            console.log(root);
             return users;
         },
         allTweets() {
@@ -68,9 +77,13 @@ const resolvers = {
     }, 
     Mutation: {
         postTweet(__, {text, userId}) {
+            if (!user.find((user) => user.id === userId)) {
+                return false;
+            }
             const newTweet = {
                 id: tweets.length + 1, 
                 text, 
+                userId,
             }; 
             tweets.push(newTweet);
             return newTweet;
@@ -81,6 +94,17 @@ const resolvers = {
             tweets = tweets.filter((tweet) => tweet.id !== id);
             return true;
         }
+    }, 
+    User: {
+        // type resolver의 첫번째 argument는 return 되고있는 object의 data를 줌!!! (root X)
+        fullName({firstName, lastName}) {  
+            return`${firstName} ${lastName}`;
+        }
+    }, 
+    Tweet: {
+        author({userId}) {
+            return users.find((user)=> user.id === userId); 
+        }
     }
 }
 // typeDefs 의 Query와 꼭 이름 일치해야함!!! 
@@ -90,6 +114,10 @@ const resolvers = {
 //     return null;
 // }
 // 이런식으로 args 파라미터로 받아올 수 있음. 혹은 객체구조분해
+
+// resolver argument 함수에는 네가지 인수가 순서대로 전달됨 
+// parent(root or source), args, context, info
+// https://www.apollographql.com/docs/apollo-server/data/resolvers/#resolver-arguments
 
 const server = new ApolloServer({typeDefs, resolvers}); 
 
